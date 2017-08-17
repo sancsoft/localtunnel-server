@@ -138,6 +138,7 @@ Proxy.prototype._handle_socket = function(socket) {
         // remove this socket
         const idx = self.sockets.indexOf(socket);
         if (idx >= 0) {
+            logger.info("Removing socket, idx: ", idx);
             self.sockets.splice(idx, 1);
         }
 

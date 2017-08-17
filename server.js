@@ -83,13 +83,14 @@ function maybe_bounce(req, res, sock, head) {
     if (!client) {
         logger.error("No client defined.");
         if (res) {
-            logger.error("No active client for: ", subdomain);
+
             res.statusCode = 502;
             res.end(`no active client for '${subdomain}'`);
+            logger.error("No active client for: ", `${subdomain}`, ", status code: ", res.statusCode);
             req.connection.destroy();
         }
         else if (sock) {
-            logger.info("Destroying sock: ", sock);
+            logger.info("No client, destroying socket");
             sock.destroy();
         }
 
@@ -98,7 +99,7 @@ function maybe_bounce(req, res, sock, head) {
 
     let finished = false;
     if (sock) {
-        logger.info("Finishing sock.");
+        logger.info("Finishing socket.");
         sock.once('end', function() {
             finished = true;
         });
@@ -107,14 +108,14 @@ function maybe_bounce(req, res, sock, head) {
         // flag if we already finished before we get a socket
         // we can't respond to these requests
         on_finished(res, function(err) {
-            logger.info("Finished before obtained socket");
+            logger.info("Finished before obtained socket, destroying connection");
             finished = true;
             req.connection.destroy();
         });
     }
     // not something we are expecting, need a sock or a res
     else {
-        logger.info("No sock or res, destroying connection");
+        logger.info("No socket or response, destroying connection");
         req.connection.destroy();
         return true;
     }
@@ -148,7 +149,7 @@ function maybe_bounce(req, res, sock, head) {
             }
 
             if (sock) {
-                logger.info("No socket, destroying sock: ", sock);
+                logger.info("Client upstream disconnected, destroying socket");
                 sock.destroy();
             }
 
