@@ -77,12 +77,12 @@ function maybe_bounce(req, res, sock, head) {
         if (res) {
             res.statusCode = 502;
             res.end(`no active client for '${subdomain}'`);
-            req.connection.destroy();
         }
         else if (sock) {
             sock.destroy();
         }
 
+        req.connection.destroy();
         return true;
     }
 
