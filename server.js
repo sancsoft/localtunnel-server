@@ -199,7 +199,14 @@ module.exports = function(opt) {
     opt = opt || {};
     var schema = opt.secure ? 'https' : 'http';
 
+    // Express Application
     var app = express();
+
+    app.use(function(req, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        next();
+    });
 
     app.get('/', function(req, res, next) {
         if (req.query['new'] === undefined) {
@@ -231,7 +238,26 @@ module.exports = function(opt) {
     app.get('/favicon.ico', function(req, res, next) {
         proxy.web(req, res);
     });
+    
+    // Must be defined before the client subdomain request
+    app.get('/client_list', function (req, res) {
+        var clientInfo = [];
 
+        for(var key in clients) {
+            var socket = clients[key].sockets[0];
+            
+            clientInfo.push({
+                subdomain: key,
+                // localAddress: socket.localAddress,
+                // localPort: socket.localPort,
+                url: schema + '://' + key + '.' + req.host
+            });
+        }
+
+        res.json(clientInfo);
+    });
+    
+    // The client subdomain request
     app.get('/:req_id', function(req, res, next) {
         var req_id = req.params.req_id;
 
@@ -262,8 +288,9 @@ module.exports = function(opt) {
         });
     });
 
+    // Server
     var server = http.createServer();
-
+    
     server.on('request', function(req, res) {
         debug('request %s', req.url);
         var configuredHost = opt.host;
