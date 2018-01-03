@@ -4,13 +4,13 @@ var EventEmitter = require('events').EventEmitter;
 var log = require('bookrc');
 var debug = require('debug')('localtunnel-server');
 
-var portMin = 1000;
-var portMax = 2000;
+var portMin = 49152;
+var portMax = 65535;
 var nextPort = portMin;
 
 function getPortInRange() {
     if(nextPort > portMax) {
-        // throw error?
+        // TODO: throw error?
 
         // Reset the nextPort
         nextPort = portMin;
@@ -55,6 +55,7 @@ var Proxy = function(opt, cb) {
 
         if (err.code === 'EADDRINUSE') {
             client_server.listen({ port: getPortInRange() }, listenFunction);
+            return;
         }
 
         log.error(err);
