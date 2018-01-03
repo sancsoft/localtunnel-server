@@ -47,7 +47,7 @@ var Proxy = function(opt, cb) {
             // maximum number of tcp connections allowed by lt client
             max_conn_count: prox.max_tcp_sockets
         });
-    }.bind(self);
+    };
 
     client_server.on('error', function(err) {
         if (err.code == 'ECONNRESET' || err.code == 'ETIMEDOUT') {
@@ -55,7 +55,7 @@ var Proxy = function(opt, cb) {
         }
 
         if (err.code === 'EADDRINUSE') {
-            client_server.listen({ port: getPortInRange() }, listenFunction);
+            client_server.listen({ port: getPortInRange() }, listenFunction.bind(self));
             return;
         }
 
@@ -149,7 +149,7 @@ var Proxy = function(opt, cb) {
 
     // Begin listening on specified port.
     // This will throw 'error' event on client_server if port is in use.
-    client_server.listen({ port: getPortInRange() }, listenFunction);
+    client_server.listen({ port: getPortInRange() }, listenFunction.bind(self));
 };
 
 Proxy.prototype.__proto__ = EventEmitter.prototype;
