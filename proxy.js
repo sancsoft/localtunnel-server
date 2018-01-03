@@ -36,17 +36,18 @@ var Proxy = function(opt, cb) {
     // new tcp server to service requests for this client
     var client_server = net.createServer();
     
-    function listenFunction() {    
+    var listenFunction = function () {
+        var prox = this;
         var port = client_server.address().port;
-        self.debug('tcp server listening on port: %d', port);
+        prox.debug('tcp server listening on port: %d', port);
 
         cb(null, {
             // port for lt client tcp connections
             port: port,
             // maximum number of tcp connections allowed by lt client
-            max_conn_count: self.max_tcp_sockets
+            max_conn_count: prox.max_tcp_sockets
         });
-    };
+    }.bind(self);
 
     client_server.on('error', function(err) {
         if (err.code == 'ECONNRESET' || err.code == 'ETIMEDOUT') {
