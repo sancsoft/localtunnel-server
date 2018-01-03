@@ -4,6 +4,20 @@ var EventEmitter = require('events').EventEmitter;
 var log = require('bookrc');
 var debug = require('debug')('localtunnel-server');
 
+var portMin = 49152;
+var portMax = 65535;
+var nextPort = portMin;
+
+function getPortInRange() {
+    if(nextPort > portMax) {
+        // TODO: throw error?
+
+        // Reset the nextPort
+        nextPort = portMin;
+    }
+    return nextPort++;
+}
+
 var Proxy = function(opt, cb) {
     if (!(this instanceof Proxy)) {
         return new Proxy(opt, cb);
@@ -17,13 +31,30 @@ var Proxy = function(opt, cb) {
     var id = opt.id;
 
     // default max is 10
-    var max_tcp_sockets = opt.max_tcp_sockets || 10;
+    var max_tcp_sockets = opt.max_tcp_sockets || 10;    
 
     // new tcp server to service requests for this client
     var client_server = net.createServer();
+    
+    var listenFunction = function () {
+        var port = client_server.address().port;
+        debug('tcp server listening on port: %d', port);
+
+        cb(null, {
+            // port for lt client tcp connections
+            port: port,
+            // maximum number of tcp connections allowed by lt client
+            max_conn_count: max_tcp_sockets
+        });
+    };
 
     client_server.on('error', function(err) {
         if (err.code == 'ECONNRESET' || err.code == 'ETIMEDOUT') {
+            return;
+        }
+
+        if (err.code === 'EADDRINUSE') {
+            client_server.listen({ port: getPortInRange() }, listenFunction);
             return;
         }
 
@@ -115,17 +146,9 @@ var Proxy = function(opt, cb) {
         }
     });
 
-    client_server.listen(function() {
-        var port = client_server.address().port;
-        debug('tcp server listening on port: %d', port);
-
-        cb(null, {
-            // port for lt client tcp connections
-            port: port,
-            // maximum number of tcp connections allowed by lt client
-            max_conn_count: max_tcp_sockets
-        });
-    });
+    // Begin listening on specified port.
+    // This will throw 'error' event on client_server if port is in use.
+    client_server.listen({ port: getPortInRange() }, listenFunction);
 };
 
 Proxy.prototype.__proto__ = EventEmitter.prototype;
