@@ -38,15 +38,14 @@ var Proxy = function(opt, cb) {
     
     console.log('before listenFunction', self);
     var listenFunction = function () {
-        var prox = this;
         var port = client_server.address().port;
-        prox.debug('tcp server listening on port: %d', port);
+        debug('tcp server listening on port: %d', port);
 
         cb(null, {
             // port for lt client tcp connections
             port: port,
             // maximum number of tcp connections allowed by lt client
-            max_conn_count: prox.max_tcp_sockets
+            max_conn_count: max_tcp_sockets
         });
     };
 
