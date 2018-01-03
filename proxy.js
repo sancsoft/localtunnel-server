@@ -36,7 +36,6 @@ var Proxy = function(opt, cb) {
     // new tcp server to service requests for this client
     var client_server = net.createServer();
     
-    console.log('before listenFunction', self);
     var listenFunction = function () {
         var port = client_server.address().port;
         debug('tcp server listening on port: %d', port);
@@ -55,8 +54,7 @@ var Proxy = function(opt, cb) {
         }
 
         if (err.code === 'EADDRINUSE') {
-            console.log('in listen error', self);
-            client_server.listen({ port: getPortInRange() }, listenFunction.bind(self));
+            client_server.listen({ port: getPortInRange() }, listenFunction);
             return;
         }
 
@@ -150,8 +148,7 @@ var Proxy = function(opt, cb) {
 
     // Begin listening on specified port.
     // This will throw 'error' event on client_server if port is in use.
-    console.log('before initial client listen', self);
-    client_server.listen({ port: getPortInRange() }, listenFunction.bind(self));
+    client_server.listen({ port: getPortInRange() }, listenFunction);
 };
 
 Proxy.prototype.__proto__ = EventEmitter.prototype;
